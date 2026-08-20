@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.class
+
+# Virtual environments
+venv/
+env/
+
+# Model weights and raw data (Too large for Git)
+weights/
+dataset_raw/
+*.pt
+*.safetensors
+*.bin
+
+# Temp logs
+logs/
