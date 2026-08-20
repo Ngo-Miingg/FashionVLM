@@ -184,6 +184,16 @@ Furthermore, Figure \ref{fig:heatmap} provides the Cross-Modal Cosine Similarity
     \label{fig:heatmap}
 \end{figure}
 
+\subsection{Interpretability: Spatial Attention Maps}
+To peer inside the "black box" of the vision encoder, we extracted the L2-normalized activation magnitudes from the final hidden layer of the ViT backbone. Figure \ref{fig:attention} visualizes the spatial attention map overlaid on the original input image. The heatmap vividly demonstrates that FashionVLM does not merely look at the center of the image; it dynamically routes attention to the specific fine-grained physical attributes (e.g., the textured rubber outsole and laces) described in the complex textual metadata. This high degree of interpretability confirms the robustness of our asymmetric optimization.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/attention_map.png}
+    \caption{Activation Map (Interpretability). Red/yellow areas indicate regions of highest neural activation, aligning precisely with textual descriptors.}
+    \label{fig:attention}
+\end{figure}
+
 \subsection{Qualitative Analysis: Solving In-the-Wild Ambiguity}
 Baseline generic models frequently misclassify dark-colored items by relying on simple color-histogram proximity. For example, comparing a black Puma sports shoe with a dark grey Nike short (Figure \ref{fig:qualitative}), baseline VLMs conflate the items. FashionVLM successfully isolates textual clues (e.g., \textit{"textured rubber outsole with patterned grooves"}) to retrieve the exact semantic match, validating the necessity of the $p_{long}$ sampling phase.
 
