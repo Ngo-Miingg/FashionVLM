@@ -102,7 +102,7 @@ y_i^{short}, & \text{with probability } 1 - p_{long}
 This data augmentation strategy ensures the model learns robust representations, successfully alternating between concise semantic keywords (33\% of iterations) and verbose product features (67\% of iterations).
 
 \subsection{Architecture Overview}
-Our framework is built upon the foundational SigLIP2 Base (\texttt{patch16-256}) architecture. The vision encoder utilizes a Patch16 configuration, processing images at a resolution of $256 \times 256$ pixels, yielding a dense hidden dimension of 768 via a 12-layer Vision Transformer. The text encoder supports a massive vocabulary size of 256,000 tokens, processing sequences through a 12-layer text Transformer and generating linguistic embeddings that are subsequently projected into the identical 768-dimensional multimodal latent space. Both modalities employ GELU-tanh activation functions.
+Our framework is built upon the foundational SigLIP2 Base (Patch16-256) architecture. The vision encoder utilizes a Patch16 configuration, processing images at a resolution of $256 \times 256$ pixels, yielding a dense hidden dimension of 768 via a 12-layer Vision Transformer. The text encoder supports a massive vocabulary size of 256,000 tokens, processing sequences through a 12-layer text Transformer and generating linguistic embeddings that are subsequently projected into the identical 768-dimensional multimodal latent space. Both modalities employ GELU-tanh activation functions.
 
 \subsection{Disentangled Learning Rate Dynamics}
 A core theoretical challenge in multimodal fine-tuning is the severely differing convergence rates of the vision and text encoders. The text encoder in SigLIP2, pre-trained on billions of tokens, is already highly optimized for semantic comprehension; applying a standard, uniform learning rate often induces massive gradient updates that irrevocably overwrite these critical weights, causing representation collapse.
@@ -214,6 +214,7 @@ EVA02-L/14 & Fine-Tuned & 427M & 36.11\%* & - \\
 
 \begin{figure}[htbp]
     \centering
+    \resizebox{\columnwidth}{!}{%
     \begin{tikzpicture}
     \begin{axis}[
         ybar,
@@ -233,7 +234,8 @@ EVA02-L/14 & Fine-Tuned & 427M & 36.11\%* & - \\
     \addplot coordinates {(ViT-L/14, 33.03) (EVA02-L/14, 36.11) (FashionVLM, 38.97)};
     \legend{Zero-Shot, Fine-Tuned}
     \end{axis}
-    \end{tikzpicture}
+    \end{tikzpicture}%
+    }
     \caption{Standard R@1 Comparison across different architectures.}
     \label{fig:bar_chart}
 \end{figure}
@@ -245,6 +247,7 @@ Figure \ref{fig:line_chart} visualizes the rapid convergence of FashionVLM. Desp
 
 \begin{figure}[htbp]
     \centering
+    \resizebox{\columnwidth}{!}{%
     \begin{tikzpicture}
     \begin{axis}[
         width=\columnwidth,
@@ -274,7 +277,8 @@ Figure \ref{fig:line_chart} visualizes the rapid convergence of FashionVLM. Desp
     };
     \addlegendentry{Validation R@1}
     \end{axis}
-    \end{tikzpicture}
+    \end{tikzpicture}%
+    }
     \caption{Training Loss vs. Validation R@1 Convergence.}
     \label{fig:line_chart}
 \end{figure}
