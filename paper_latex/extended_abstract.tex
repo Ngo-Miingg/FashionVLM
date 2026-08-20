@@ -14,7 +14,7 @@
 
 \begin{document}
 
-\title{EXTENDED ABSTRACT: Enhancing Multimodal Fashion Classification via Disentangled Optimization}
+\title{EXTENDED ABSTRACT: Enhancing Multimodal Fashion Classification Through Disentangled Learning Rates and Hard-Negative Contrastive Optimization}
 
 \author{
 \IEEEauthorblockN{Ngo Van Minh}
@@ -32,63 +32,108 @@ namtq@dainam.edu.vn}
 
 \maketitle
 
-% TEASER FIGURE: Đập thẳng vào mắt Reviewer ngay trang 1
 \begin{figure*}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \begin{tikzpicture}[scale=0.85]
+        \resizebox{\linewidth}{!}{%
+        \begin{tikzpicture}
         \begin{axis}[
-            ybar, bar width=12pt, width=\textwidth, height=5cm,
-            enlarge x limits=0.3, legend style={at={(0.5,-0.2)}, anchor=north, legend columns=-1},
+            ybar, bar width=15pt, width=1.1\textwidth, height=5.5cm,
+            enlarge x limits=0.25, legend style={at={(0.5,-0.15)}, anchor=north, legend columns=-1},
             ylabel={Recall@1 (\%)}, symbolic x coords={ViT-L/14, EVA02-L/14, FashionVLM},
             xtick=data, nodes near coords, nodes near coords align={vertical}, ymin=20, ymax=45,
         ]
         \addplot coordinates {(ViT-L/14, 26.15) (EVA02-L/14, 36.11) (FashionVLM, 36.36)};
         \addplot coordinates {(ViT-L/14, 33.03) (EVA02-L/14, 36.11) (FashionVLM, 41.11)};
-        \legend{Zero-Shot, Fine-Tuned (Within-Cat)}
+        \legend{Zero-Shot Baseline, Fine-Tuned (Within-Category)}
         \end{axis}
-        \end{tikzpicture}
-        \caption{Retrieval Accuracy: FashionVLM vs. Massive Architectures.}
+        \end{tikzpicture}%
+        }
+        \caption{Quantitative performance comparison. FashionVLM overcomes the representation collapse observed in EVA02-L/14.}
         \label{fig:teaser_bar}
     \end{minipage}\hfill
     \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=0.85\linewidth]{figures/tsne_plot.png}
-        \caption{t-SNE Latent Space: Perfect clustering of fine-grained categories.}
+        \caption{t-SNE Latent Space Visualization of FashionVLM. Fine-grained categories form highly discriminative, separable clusters.}
         \label{fig:teaser_tsne}
     \end{minipage}
-    \vspace{-0.3cm}
+    \vspace{-0.2cm}
 \end{figure*}
 
 \begin{abstract}
-We propose FashionVLM, a mathematically optimized multimodal framework for fine-grained fashion classification based on the SigLIP2 architecture. Standard fine-tuning of massive Vision-Language Models (VLMs) on narrow domains induces catastrophic forgetting and representation collapse. We provide empirical evidence that integrating Disentangled Learning Rates ($\eta_{text} \ll \eta_{vision}$) and a Category-Aware Hard-Negative Penalty ($\gamma=0.25$) eradicates these failures. Our $\sim$150M parameter model achieves a State-of-the-Art 41.11\% Within-Category R@1, vastly outperforming baselines nearly 3x its size (ViT-L/14, EVA02-L/14) while consuming 3x less VRAM.
+While large-scale Vision-Language Models (VLMs) exhibit extraordinary zero-shot generalization, fine-tuning them on granular domains like e-commerce fashion frequently induces catastrophic forgetting and representation collapse. In this extended abstract, we present FashionVLM, a mathematically optimized framework utilizing the SigLIP2 architecture. We propose two primary scientific contributions: (1) an asymmetric Disentangled Learning Rate strategy that mathematically restricts textual representation drift, preventing the degradation of foundational linguistic knowledge; and (2) a Category-Aware Hard-Negative Sigmoid Loss that applies a dynamic penalty to intra-category pairs, enforcing fine-grained visual discrimination. Empirical evaluations on a 4,337-sample multimodal corpus demonstrate that our $\sim$150M parameter framework achieves a State-of-the-Art 41.11\% Within-Category R@1. This methodology comprehensively outperforms massive foundational models (ViT-L/14, EVA02-L/14) while drastically reducing computational overhead.
 \end{abstract}
 
-\section{Problem \& Motivation}
-In e-commerce, accurately aligning visual attributes with highly variable textual metadata is computationally challenging. While large-scale VLMs (CLIP, EVA02) excel in open-world zero-shot scenarios, deploying them for Fine-Grained Visual Categorization (FGVC) reveals two critical vulnerabilities:
-1) \textbf{Catastrophic Forgetting:} Aggressively fine-tuning text encoders destroys their pre-trained semantic alignment.
-2) \textbf{Intra-Category Ambiguity:} Standard contrastive losses (InfoNCE) fail to mathematically penalize models when they confuse visually identical items belonging to different sub-categories (e.g., black Puma shoes vs. black Nike shorts).
+\begin{IEEEkeywords}
+Multimodal Classification, Vision-Language Models, SigLIP2, Cross-Modal Retrieval, Disentangled Fine-Tuning.
+\end{IEEEkeywords}
 
-\section{Methodology: FashionVLM}
-To provide a concrete solution, we optimized the \texttt{siglip2-base-patch16} backbone via two key interventions. Let the dataset be $\mathcal{D} = \{(x_i, y_i, c_i)\}_{i=1}^N$.
+\section{Introduction and Scientific Motivation}
+The deployment of multimodal Artificial Intelligence in e-commerce necessitates a profound, granular computational understanding of both visual aesthetics and highly variable textual semantics. Foundational Vision-Language Models (VLMs) such as OpenAI's CLIP \cite{radford2021learning} and OpenCLIP's EVA02 \cite{fang2023eva} have established global benchmarks via contrastive learning on internet-scale image-text pairs. 
 
-\textbf{1. Disentangled Learning Rate Dynamics:} To prevent textual representation collapse, we decoupled the AdamW optimizer. Empirical sweeps validated that setting $\eta_{text} = 10^{-6}$ and $\eta_{vision} = 10^{-5}$ strictly regularizes linguistic updates while allowing the vision network to aggressively adapt.
+Despite their open-world robustness, deploying these massive architectures for Fine-Grained Visual Categorization (FGVC) reveals two critical systemic vulnerabilities. First, standard end-to-end fine-tuning induces \textit{catastrophic forgetting}. The text encoder, pre-trained on billions of tokens, rapidly loses its generalized semantic alignment when forced to aggressively adapt to a narrow visual data distribution. Second, standard contrastive loss formulations (e.g., InfoNCE) treat all negative samples uniformly. They fail to mathematically penalize the network when it confuses two highly similar products within the exact same category (e.g., distinguishing a "red floral dress" from a "red polka-dot dress").
 
-\textbf{2. Category-Aware Hard-Negative Loss:} Standard SigLIP minimizes independent pairwise sigmoid loss. We introduce a hard-negative weighting scalar $\gamma = 0.25$. If an unmatched pair ($i \neq j$) shares the exact category ($c_i = c_j$), we mathematically amplify the penalty:
+We address these challenges through \textbf{FashionVLM}. Our scientific contribution lies in reformulating the multimodal fine-tuning paradigm from brute-force parameter scaling to targeted mathematical optimization.
+
+\section{Proposed Methodology}
+
+\subsection{Multimodal Data Formulation}
+Let the dataset be defined as $\mathcal{D} = \{(x_i, y_i, c_i)\}_{i=1}^N$, where $x_i \in \mathbb{R}^{H \times W \times C}$ represents the image tensor, $y_i$ represents textual tokens, and $c_i \in \mathcal{C}$ is the discrete categorical label. To ensure robust alignment across extreme text-length disparities inherent in e-commerce, we employ a dynamic probabilistic sampling technique ($p_{long} = 0.67$), stochastically alternating inputs between concise product titles and highly verbose attributes.
+
+\subsection{Disentangled Learning Rate Dynamics}
+To prevent catastrophic forgetting in the text encoder, we implement an asymmetric optimization strategy. Let $\theta_{vis}$ and $\theta_{txt}$ be the parameters of the vision and text encoders. Optimized via AdamW with decoupled weight decay, the gradient update rules are formulated as:
+\begin{equation}
+    \theta_{vis}^{(t+1)} = \theta_{vis}^{(t)} - \eta_{vision} \cdot \text{AdamW}(\nabla_{\theta_{vis}} \mathcal{L}, \theta_{vis}^{(t)})
+    \label{eq:update_vis}
+\end{equation}
+\begin{equation}
+    \theta_{txt}^{(t+1)} = \theta_{txt}^{(t)} - \eta_{text} \cdot \text{AdamW}(\nabla_{\theta_{txt}} \mathcal{L}, \theta_{txt}^{(t)})
+    \label{eq:update_txt}
+\end{equation}
+By strictly regularizing the linguistic updates ($\eta_{text} = 10^{-6} \ll \eta_{vision} = 10^{-5}$), the vision encoder aggressively adapts to fashion-specific textures, while the text encoder safely aligns its latent space without distorting foundational grammar understanding.
+
+\subsection{Category-Aware Hard-Negative Contrastive Loss}
+Standard SigLIP replaces the memory-intensive softmax with an independent pairwise sigmoid loss. We extend this by introducing a category-aware hard-negative weighting scalar $\gamma$. During gradient computation, if an unmatched negative pair ($i \neq j$) belongs to the exact same categorical group ($c_i = c_j$), we amplify the negative loss component:
 \begin{equation}
     \mathcal{L}_{ours} = - \frac{1}{B} \sum_{i,j} w_{i,j} \log \sigma(z_{i,j} \cdot s_{i,j})
+    \label{eq:loss_ours}
 \end{equation}
 \begin{equation}
 w_{i,j} = \begin{cases} 1 + \gamma, & \text{if } i \neq j \text{ and } c_i = c_j \\ 1, & \text{otherwise} \end{cases}
+\label{eq:weight_scalar}
 \end{equation}
+We empirically set $\gamma = 0.25$. This forces the gradient to penalize fine-grained intra-category confusion. The complete optimization process is formalized in Algorithm \ref{alg:training}.
 
-\section{Empirical Evidence \& Results}
-Experiments were conducted on the Kaggle Fashion corpus (4,337 cross-modal pairs). The evidence unequivocally validates our approach:
+\begin{algorithm}[htbp]
+\caption{FashionVLM Training Loop}
+\label{alg:training}
+\begin{algorithmic}[1]
+\REQUIRE Dataset $\mathcal{D}$, Vision LR $\eta_{vision}$, Text LR $\eta_{text}$, Penalty $\gamma$, Epochs $E$, $p_{long}$
+\FOR{epoch = $1$ to $E$}
+    \FOR{batch $\mathcal{B} = \{(x_i, y_i^{short}, y_i^{long}, c_i)\}_{i=1}^B \in \mathcal{D}$}
+        \STATE Sample $u \sim \mathcal{U}(0,1)$
+        \STATE $y_i \leftarrow y_i^{long}$ if $u < p_{long}$ else $y_i^{short}$
+        \STATE $v_i \leftarrow f_{vis}(x_i; \theta_{vis})$
+        \STATE $t_i \leftarrow f_{txt}(y_i; \theta_{txt})$
+        \STATE Compute logits $z_{i,j} \leftarrow \tau (v_i^T t_j + b)$
+        \STATE Compute $\mathcal{L}_{ours}$ via Eq. \ref{eq:loss_ours} and \ref{eq:weight_scalar}
+        \STATE Update $\theta_{vis}$ using AdamW with $\eta_{vision}$ (Eq. \ref{eq:update_vis})
+        \STATE Update $\theta_{txt}$ using AdamW with $\eta_{text}$ (Eq. \ref{eq:update_txt})
+    \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
 
-\textbf{1. Outperforming Parameter Scaling:} As shown in Fig \ref{fig:teaser_bar}, while EVA02-L/14 (427M params) suffered from representation collapse (plateauing at 36.11\%), FashionVLM ($\sim$150M params) achieved \textbf{41.11\% Within-Category R@1}.
+\section{Empirical Evaluation and Results}
+Experiments were conducted on a complex e-commerce corpus containing 4,337 cross-modal evaluation pairs. We employed an effective batch size of 128 (via gradient accumulation across dual GPUs) to ensure a robust negative sampling pool.
 
-\textbf{2. Ablation Proof of Interventions:} Table \ref{tab:ablation} proves that negating the disentangled learning rate ($\eta_{text} = \eta_{vision}$) causes severe representation collapse, dropping accuracy below baseline to 34.50\%. The synergy of both interventions is mandatory for SOTA alignment.
+\subsection{Quantitative Benchmarking}
+As depicted in Figure \ref{fig:teaser_bar}, standard fine-tuning of massive models yields diminishing returns. EVA02-L/14 ($\sim$427M parameters) experienced catastrophic saturation during fine-tuning, failing to surpass its zero-shot baseline of 36.11\%. Conversely, FashionVLM ($\sim$150M parameters) achieved \textbf{38.97\% Standard R@1} and a commanding \textbf{41.11\% Within-Category R@1}.
+
+\subsection{Ablation Studies}
+Table \ref{tab:ablation} quantifies our architectural contributions. Negating the disentangled learning rate ($\eta_{text} = \eta_{vision}$) induced severe representation collapse, dropping R@1 to 34.50\% (below zero-shot performance). Implementing Disentangled LR without the category penalty ($\gamma = 0$) improved general retrieval but yielded a modest 39.45\% Within-Category R@1. Achieving the peak 41.11\% unequivocally requires the synergy of both mathematical interventions.
 
 \begin{table}[htbp]
 \caption{Ablation Study of Algorithmic Interventions}
@@ -105,10 +150,11 @@ $\times$ & $\times$ & 34.50\% & 35.80\% \\
 }
 \end{table}
 
-\textbf{3. Deployability Evidence:} Profiling indicates ViT-L/14 consumes $\sim$1.07 GiB Peak VRAM, whereas FashionVLM consumes only $\sim$0.35 GiB, ensuring high efficiency for edge deployment.
+\subsection{Deployability and Latent Space Visualization}
+Figure \ref{fig:teaser_tsne} confirms that FashionVLM successfully clusters fine-grained visual categories. Furthermore, hardware profiling validates that FashionVLM consumes only $\sim$0.35 GiB Peak VRAM compared to $\sim$1.07 GiB for ViT-L/14, offering a highly sustainable solution for edge deployment.
 
 \section{Conclusion}
-The empirical data definitively proves that targeted mathematical optimizations (Disentangled LR and Category-Aware Sigmoid Loss) resolve fine-grained multimodal gaps far more effectively than brute-force computational scaling. FashionVLM provides a rigorous, production-ready framework for modern e-commerce AI.
+This extended abstract validates that targeted mathematical optimization resolves fine-grained multimodal disparities far more effectively than parameter scaling. By implementing Disentangled LR and Category-Aware Hard-Negative Loss, FashionVLM prevents representation collapse and establishes State-of-the-Art accuracy, providing a robust scientific framework for specialized e-commerce AI.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
