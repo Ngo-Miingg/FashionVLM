@@ -39,7 +39,7 @@ namtq@dainam.edu.vn}
         \resizebox{\linewidth}{!}{%
         \begin{tikzpicture}
         \begin{axis}[
-            ybar, bar width=15pt, width=1.1\textwidth, height=5.5cm,
+            ybar, bar width=15pt, width=\textwidth, height=5.5cm,
             enlarge x limits=0.25, legend style={at={(0.5,-0.15)}, anchor=north, legend columns=-1},
             ylabel={Recall@1 (\%)}, symbolic x coords={ViT-L/14, EVA02-L/14, FashionVLM},
             xtick=data, nodes near coords, nodes near coords align={vertical}, ymin=20, ymax=45,
@@ -152,6 +152,16 @@ $\times$ & $\times$ & 34.50\% & 35.80\% \\
 
 \subsection{Deployability and Latent Space Visualization}
 Figure \ref{fig:teaser_tsne} confirms that FashionVLM successfully clusters fine-grained visual categories. Furthermore, hardware profiling validates that FashionVLM consumes only $\sim$0.35 GiB Peak VRAM compared to $\sim$1.07 GiB for ViT-L/14, offering a highly sustainable solution for edge deployment.
+
+\subsection{Interpretability: Spatial Attention Maps}
+To validate the "black box" decisions of our vision encoder, we extracted L2-normalized activation magnitudes from the final ViT layer. Figure \ref{fig:attention} demonstrates that FashionVLM dynamically routes neural attention precisely to fine-grained physical attributes (e.g., the textured outsole) described in the text, confirming the semantic robustness of our hard-negative penalty.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\columnwidth]{figures/attention_map.png}
+    \caption{Activation Map. Neural attention aligns with complex textual attributes.}
+    \label{fig:attention}
+\end{figure}
 
 \section{Conclusion}
 This extended abstract validates that targeted mathematical optimization resolves fine-grained multimodal disparities far more effectively than parameter scaling. By implementing Disentangled LR and Category-Aware Hard-Negative Loss, FashionVLM prevents representation collapse and establishes State-of-the-Art accuracy, providing a robust scientific framework for specialized e-commerce AI.
