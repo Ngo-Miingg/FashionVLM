@@ -1,3 +1,5 @@
+*Read this in other languages: [English](README.md) | [Tiếng Việt](README_vi.md)*
+
 # 👕 FashionVLM: Enhancing Multimodal Fashion Classification
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
